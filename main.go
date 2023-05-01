@@ -25,6 +25,9 @@ func main() {
 		LimiterMiddleware: limiter.SlidingWindow{},
 	}))
 
+	app.Get("/", func(c *fiber.Ctx) error {
+		return c.Status(200).SendString("Working fine")
+	})
 	api := app.Group("/api")
 
 	api.Post("/register", register)
