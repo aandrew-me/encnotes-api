@@ -4,12 +4,17 @@ import (
 	"context"
 
 	"github.com/gofiber/fiber/v2"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type Note struct {
 	ID    string `json:"id"`
 	Title string `json:"title" validate:"required"`
 	Body  string `json:"body" validate:"required"`
+}
+
+type UserOnlyNote struct {
+	Notes    []Note `json:"notes"`
 }
 
 type NoteToDelete struct {
@@ -28,7 +33,7 @@ func addNote(c *fiber.Ctx) error {
 
 	if err != nil {
 		return c.Status(fiber.StatusNotAcceptable).JSON(fiber.Map{
-			"status":  "false",
+			"status":  false,
 			"message": "Make sure the request has a title and a body",
 		})
 	}
@@ -46,17 +51,17 @@ func addNote(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "something went wrong: " + err.Error(),
-			"status":  "false",
+			"status":  false,
 		})
 	}
 
 	return c.Status(fiber.StatusAccepted).JSON(fiber.Map{
-		"status":  "true",
+		"status":  true,
 		"message": "Note Added",
 	})
 }
 
-func getNote(c *fiber.Ctx) error {
+func getNotes(c *fiber.Ctx) error {
 	userID := c.Locals("userID")
 
 	var db = client.Database("enotesdb")
@@ -71,7 +76,7 @@ func getNote(c *fiber.Ctx) error {
 	if result.Err() != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "something went wrong: " + result.Err().Error(),
-			"status":  "false",
+			"status":  false,
 		})
 	}
 
@@ -80,7 +85,7 @@ func getNote(c *fiber.Ctx) error {
 	notes := user.Notes
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"status": "true",
+		"status": true,
 		"notes":  notes,
 	})
 }
@@ -97,7 +102,7 @@ func deleteNote(c *fiber.Ctx) error {
 
 	if err != nil {
 		return c.Status(fiber.StatusNotAcceptable).JSON(fiber.Map{
-			"status":  "false",
+			"status":  false,
 			"message": "Make sure the request has a title and a body",
 		})
 	}
@@ -114,7 +119,7 @@ func deleteNote(c *fiber.Ctx) error {
 
 	if result.ModifiedCount == 0 {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"status":  "true",
+			"status":  false,
 			"message": "Note Doesn't Exist",
 		})
 	}
@@ -122,12 +127,12 @@ func deleteNote(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "something went wrong: " + err.Error(),
-			"status":  "false",
+			"status":  false,
 		})
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"status":  "true",
+		"status":  true,
 		"message": "Note Deleted",
 	})
 }
@@ -143,12 +148,12 @@ func updateNote(c *fiber.Ctx) error {
 
 	if err != nil {
 		return c.Status(fiber.StatusNotAcceptable).JSON(fiber.Map{
-			"status":  "false",
+			"status":  false,
 			"message": "Make sure the request has a title and a body",
 		})
 	}
 
-	result := userCollection.FindOneAndUpdate(context.Background(), fiber.Map{
+	_, err = userCollection.UpdateOne(context.Background(), fiber.Map{
 		"userID": userID, "notes.id": note.ID,
 	}, fiber.Map{
 		"$set": fiber.Map{
@@ -156,15 +161,50 @@ func updateNote(c *fiber.Ctx) error {
 		},
 	})
 
-	if result.Err() != nil {
+	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Something went wrong: " + err.Error(),
-			"status":  "false",
+			"status":  false,
 		})
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"status":  "true",
+		"status":  true,
 		"message": "Note Updated",
+	})
+}
+
+
+func getNote(c *fiber.Ctx) error {
+	userID := c.Locals("userID")
+	noteID := c.Params("id")
+	var user UserOnlyNote
+
+	if noteID == "" {
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+			"status":  false,
+			"message": "Note ID parameter is missing",
+		})
+	}
+
+	var db = client.Database("enotesdb")
+	var userCollection = db.Collection("users")
+
+	result := userCollection.FindOne(context.Background(), fiber.Map{
+		"userID": userID, "notes.id": noteID,
+	}, options.FindOne().SetProjection(fiber.Map{"notes.$":1}))
+
+	result.Decode(&user)
+
+	if result.Err() != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"status":  false,
+			"message": "Note Doesn't Exist",
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"status":  true,
+		"note": user.Notes[0],
 	})
 }
