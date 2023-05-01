@@ -32,7 +32,7 @@ func main() {
 
 	api.Get("/ping", func(c *fiber.Ctx) error {
 		return c.Status(200).JSON(fiber.Map{
-			"message":"pong",
+			"message": "pong",
 		})
 	})
 
