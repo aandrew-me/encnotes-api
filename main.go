@@ -30,13 +30,19 @@ func main() {
 	api.Post("/register", register)
 	api.Post("/login", login)
 
+	api.Get("/ping", func(c *fiber.Ctx) error {
+		return c.Status(200).JSON(fiber.Map{
+			"message":"pong",
+		})
+	})
+
 	api.Get("/notes", AuthMiddleWare, getNote)
 	api.Post("/notes", AuthMiddleWare, addNote)
 	api.Delete("/notes", AuthMiddleWare, deleteNote)
 
 	api.Post("/info", AuthMiddleWare, info)
 
-	PORT := ":3000"
+	PORT := ":8100"
 
 	if os.Getenv("PORT") != "" {
 		PORT = os.Getenv("PORT")

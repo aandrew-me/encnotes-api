@@ -79,7 +79,7 @@ func getNote(c *fiber.Ctx) error {
 
 	notes := user.Notes
 
-	return c.Status(fiber.StatusAccepted).JSON(fiber.Map{
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"status": "true",
 		"notes":  notes,
 	})
