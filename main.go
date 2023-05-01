@@ -42,6 +42,7 @@ func main() {
 	api.Get("/notes", AuthMiddleWare, getNote)
 	api.Post("/notes", AuthMiddleWare, addNote)
 	api.Delete("/notes", AuthMiddleWare, deleteNote)
+	api.Put("/notes", AuthMiddleWare, updateNote)
 
 	api.Post("/info", AuthMiddleWare, info)
 

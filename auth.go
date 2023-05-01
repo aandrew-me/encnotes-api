@@ -231,7 +231,7 @@ func login(c *fiber.Ctx) error {
 	sess.Set("userID", userResult.UserID)
 	sess.Save()
 	c.Locals("userID", userResult.UserID)
-	return c.Status(fiber.StatusAccepted).JSON(fiber.Map{
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "Successfully logged in. Redirect to home page",
 		"status":  "true",
 	})

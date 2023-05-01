@@ -131,3 +131,40 @@ func deleteNote(c *fiber.Ctx) error {
 		"message": "Note Deleted",
 	})
 }
+
+func updateNote(c *fiber.Ctx) error {
+	userID := c.Locals("userID")
+
+	var db = client.Database("enotesdb")
+	var userCollection = db.Collection("users")
+
+	var note Note
+	err := c.BodyParser(&note)
+
+	if err != nil {
+		return c.Status(fiber.StatusNotAcceptable).JSON(fiber.Map{
+			"status":  "false",
+			"message": "Make sure the request has a title and a body",
+		})
+	}
+
+	result := userCollection.FindOneAndUpdate(context.Background(), fiber.Map{
+		"userID": userID, "notes.id": note.ID,
+	}, fiber.Map{
+		"$set": fiber.Map{
+			"notes.$.title": note.Title, "notes.$.body": note.Body,
+		},
+	})
+
+	if result.Err() != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Something went wrong: " + err.Error(),
+			"status":  "false",
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"status":  "true",
+		"message": "Note Updated",
+	})
+}

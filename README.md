@@ -19,3 +19,6 @@ API uses MongoDB to store user Data.
 
 ## Delete
 - /api/notes
+
+## PUT
+- /api/put
