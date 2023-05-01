@@ -12,6 +12,10 @@ type Note struct {
 	Body  string `json:"body" validate:"required"`
 }
 
+type NoteToDelete struct {
+	ID string `json:"id"`
+}
+
 func addNote(c *fiber.Ctx) error {
 	userID := c.Locals("userID")
 
@@ -31,17 +35,24 @@ func addNote(c *fiber.Ctx) error {
 
 	note.ID, _ = GenerateRandomString(20)
 
-	userCollection.UpdateOne(context.Background(), fiber.Map{
-		"userID":userID,
+	_, err = userCollection.UpdateOne(context.Background(), fiber.Map{
+		"userID": userID,
 	}, fiber.Map{
-		"$push":fiber.Map{
-			"notes":note,
+		"$push": fiber.Map{
+			"notes": note,
 		},
 	})
 
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "something went wrong: " + err.Error(),
+			"status":  "false",
+		})
+	}
+
 	return c.Status(fiber.StatusAccepted).JSON(fiber.Map{
 		"status":  "true",
-		"message": "Hello",
+		"message": "Note Added",
 	})
 }
 
@@ -71,5 +82,53 @@ func getNote(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusAccepted).JSON(fiber.Map{
 		"status": "true",
 		"notes":  notes,
+	})
+}
+
+func deleteNote(c *fiber.Ctx) error {
+
+	userID := c.Locals("userID")
+
+	var db = client.Database("enotesdb")
+	var userCollection = db.Collection("users")
+
+	var note NoteToDelete
+
+	err := c.BodyParser(&note)
+
+	if err != nil {
+		return c.Status(fiber.StatusNotAcceptable).JSON(fiber.Map{
+			"status":  "false",
+			"message": "Make sure the request has a title and a body",
+		})
+	}
+
+	result, err := userCollection.UpdateOne(context.Background(), fiber.Map{
+		"userID": userID,
+	}, fiber.Map{
+		"$pull": fiber.Map{
+			"notes": fiber.Map{
+				"id": note.ID,
+			},
+		},
+	})
+
+	if result.ModifiedCount == 0 {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"status":  "true",
+			"message": "Note Doesn't Exist",
+		})
+	}
+
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "something went wrong: " + err.Error(),
+			"status":  "false",
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"status":  "true",
+		"message": "Note Deleted",
 	})
 }

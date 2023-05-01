@@ -23,6 +23,7 @@ func main() {
 
 	api.Get("/notes", AuthMiddleWare, getNote)
 	api.Post("/notes", AuthMiddleWare, addNote)
+	api.Delete("/notes", AuthMiddleWare, deleteNote)
 
 	api.Post("/info", AuthMiddleWare, info)
 
