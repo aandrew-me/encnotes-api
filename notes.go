@@ -86,7 +86,6 @@ func getNote(c *fiber.Ctx) error {
 }
 
 func deleteNote(c *fiber.Ctx) error {
-
 	userID := c.Locals("userID")
 
 	var db = client.Database("enotesdb")
