@@ -45,7 +45,7 @@ func main() {
 	PORT := ":8100"
 
 	if os.Getenv("PORT") != "" {
-		PORT = os.Getenv(":PORT")
+		PORT = os.Getenv("0.0.0.0:PORT")
 	}
 
 	app.Listen(PORT)
