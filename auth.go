@@ -19,6 +19,7 @@ type User struct {
 	Password string `json:"password" validate:"required,min=6,max=32"`
 	UserID   string `json:"userID" validate:"required" bson:"userID"`
 	Notes    []Note `json:"notes"`
+	Verified bool
 }
 
 // Register
@@ -70,6 +71,7 @@ func register(c *fiber.Ctx) error {
 		Password: user.Password,
 		Notes:    []Note{},
 		UserID:   randomString,
+		Verified: false,
 	}
 
 	_, err = userCollection.InsertOne(context.Background(), finalUser)
@@ -80,27 +82,10 @@ func register(c *fiber.Ctx) error {
 			"status":  "false",
 		})
 	}
-	sess, err := store.Get(c)
-
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "something went wrong: " + err.Error(),
-			"status":  "false",
-		})
-	}
-
-	sess.Set("userID", finalUser.UserID)
-
-	if err := sess.Save(); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "Failed to set session cookie" + err.Error(),
-			"status":  "false",
-		})
-	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"status":  "true",
-		"message": "Account Created",
+		"message": "Account Created. Verify your email to complete registration.",
 	})
 
 }
@@ -216,7 +201,14 @@ func login(c *fiber.Ctx) error {
 	if userResult.Password != user.Password {
 		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
 			"status":  "false",
-			"message": "Incorrect password",
+			"message": "Your password is incorrect",
+		})
+	}
+
+	if !userResult.Verified {
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+			"status":  "false",
+			"message": "You need to verify your Email",
 		})
 	}
 
@@ -234,6 +226,22 @@ func login(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "Successfully logged in. Redirect to home page",
 		"status":  "true",
+	})
+
+}
+
+func verifyEmail(c *fiber.Ctx) error {
+	email := c.Query("email")
+	code := c.Query("code")
+
+	if email == "" || code == "" {
+		return c.SendString("Request is Invalid")
+	}
+
+	return c.Status(200).JSON(fiber.Map{
+		"status": true,
+		"email":  email,
+		"code":   code,
 	})
 
 }

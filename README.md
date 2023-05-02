@@ -21,4 +21,4 @@ API uses MongoDB to store user Data.
 - /api/notes
 
 ## PUT
-- /api/put
+- /api/notes
