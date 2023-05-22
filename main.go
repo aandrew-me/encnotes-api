@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -25,6 +26,8 @@ func main() {
 		Max:               20,
 		Expiration:        30 * time.Second,
 		LimiterMiddleware: limiter.SlidingWindow{},
+	}), cors.New(cors.Config{
+		AllowOrigins: "*",
 	}))
 
 	app.Get("/", func(c *fiber.Ctx) error {

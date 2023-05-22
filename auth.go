@@ -19,7 +19,7 @@ type User struct {
 	Password string `json:"password" validate:"required,min=6,max=32"`
 	UserID   string `json:"userID" validate:"required" bson:"userID"`
 	Notes    []Note `json:"notes"`
-	Verified bool
+	Verified bool `json:"verified"`
 }
 
 // Register
