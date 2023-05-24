@@ -19,7 +19,7 @@ type User struct {
 	Password string `json:"password" validate:"required,min=6,max=32"`
 	UserID   string `json:"userID" validate:"required" bson:"userID"`
 	Notes    []Note `json:"notes"`
-	Verified bool `json:"verified"`
+	Verified bool   `json:"verified"`
 }
 
 // Register
@@ -93,11 +93,15 @@ func register(c *fiber.Ctx) error {
 // Auth
 var validate = validator.New()
 var store = session.New(session.Config{
-	CookieHTTPOnly: true,
-	Expiration:     time.Hour * 24 * 7,
+	Expiration:   time.Hour * 24 * 7,
+	CookieSecure: true,
 })
 
 func AuthMiddleWare(c *fiber.Ctx) error {
+	// Set cookie header from authorization header
+	auth_header := c.Get("Authorization")
+	c.Request().Header.Set("Cookie", auth_header)
+
 	sess, err := store.Get(c)
 
 	if err != nil {
@@ -154,6 +158,10 @@ func login(c *fiber.Ctx) error {
 	var db = client.Database("enotesdb")
 	var userCollection = db.Collection("users")
 	c.Accepts("application/json")
+
+	// Set cookie header from authorization header
+	auth_header := c.Get("Authorization")
+	c.Request().Header.Set("Cookie", auth_header)
 
 	sess, _ := store.Get(c)
 	userID := sess.Get("userID")
@@ -223,6 +231,9 @@ func login(c *fiber.Ctx) error {
 	sess.Set("userID", userResult.UserID)
 	sess.Save()
 	c.Locals("userID", userResult.UserID)
+
+	session_id := c.GetRespHeader("Set-Cookie")
+	c.Response().Header.Set("Authorization", session_id)
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "Successfully logged in. Redirect to home page",
 		"status":  "true",
@@ -244,4 +255,19 @@ func verifyEmail(c *fiber.Ctx) error {
 		"code":   code,
 	})
 
+}
+
+func logout(c *fiber.Ctx) error {
+	// Set cookie header from authorization header
+	auth_header := c.Get("Authorization")
+	c.Request().Header.Set("Cookie", auth_header)
+
+	sess, _ := store.Get(c)
+	// sess.Delete("userId")
+	sess.Destroy()
+	
+	return c.Status(200).JSON(fiber.Map{
+		"status": true,
+		"message":  "Logged out",
+	})
 }

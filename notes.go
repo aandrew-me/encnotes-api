@@ -14,7 +14,7 @@ type Note struct {
 }
 
 type UserOnlyNote struct {
-	Notes    []Note `json:"notes"`
+	Notes []Note `json:"notes"`
 }
 
 type NoteToDelete struct {
@@ -58,6 +58,11 @@ func addNote(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusAccepted).JSON(fiber.Map{
 		"status":  true,
 		"message": "Note Added",
+		"note": fiber.Map{
+			"title": note.Title,
+			"body":  note.Body,
+			"id":    note.ID,
+		},
 	})
 }
 
@@ -103,7 +108,7 @@ func deleteNote(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusNotAcceptable).JSON(fiber.Map{
 			"status":  false,
-			"message": "Make sure the request has a title and a body",
+			"message": "Make sure the request has a note ID",
 		})
 	}
 
@@ -174,7 +179,6 @@ func updateNote(c *fiber.Ctx) error {
 	})
 }
 
-
 func getNote(c *fiber.Ctx) error {
 	userID := c.Locals("userID")
 	noteID := c.Params("id")
@@ -192,7 +196,7 @@ func getNote(c *fiber.Ctx) error {
 
 	result := userCollection.FindOne(context.Background(), fiber.Map{
 		"userID": userID, "notes.id": noteID,
-	}, options.FindOne().SetProjection(fiber.Map{"notes.$":1}))
+	}, options.FindOne().SetProjection(fiber.Map{"notes.$": 1}))
 
 	result.Decode(&user)
 
@@ -204,7 +208,7 @@ func getNote(c *fiber.Ctx) error {
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"status":  true,
-		"note": user.Notes[0],
+		"status": true,
+		"note":   user.Notes[0],
 	})
 }

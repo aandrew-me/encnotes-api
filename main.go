@@ -26,8 +26,11 @@ func main() {
 		Max:               20,
 		Expiration:        30 * time.Second,
 		LimiterMiddleware: limiter.SlidingWindow{},
-	}), cors.New(cors.Config{
+	}))
+
+	app.Use(cors.New(cors.Config{
 		AllowOrigins: "*",
+		ExposeHeaders: "Authorization",
 	}))
 
 	app.Get("/", func(c *fiber.Ctx) error {
