@@ -15,11 +15,12 @@ type UserRegister struct {
 }
 
 type User struct {
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required,min=6,max=32"`
-	UserID   string `json:"userID" validate:"required" bson:"userID"`
-	Notes    []Note `json:"notes"`
-	Verified bool   `json:"verified"`
+	Email            string `json:"email" validate:"required,email"`
+	Password         string `json:"password" validate:"required,min=6,max=32"`
+	UserID           string `json:"userID" validate:"required" bson:"userID"`
+	Notes            []Note `json:"notes"`
+	Verified         bool   `json:"verified"`
+	VerificationCode string `json:"verificationCode"`
 }
 
 // Register
@@ -248,11 +249,44 @@ func verifyEmail(c *fiber.Ctx) error {
 	if email == "" || code == "" {
 		return c.SendString("Request is Invalid")
 	}
+	var db = client.Database("enotesdb")
+	var userCollection = db.Collection("users")
+	var codeCollection = db.Collection("codes")
+
+	result := codeCollection.FindOne(context.Background(), fiber.Map{
+		"code":  code,
+		"email": email,
+	})
+
+	if result.Err() != nil {
+		return c.SendString("Request is Invalid")
+	}
+
+	userCollection.UpdateOne(context.Background(), fiber.Map{
+		"email": email,
+	}, fiber.Map{
+		"$set": fiber.Map{
+			"verified": true,
+		},
+	})
+
+	return c.Status(200).SendString("Email Verified. You can login now.")
+
+}
+
+func handleSendEmail(c *fiber.Ctx) error {
+	type Body struct {
+		Email string
+	}
+	var body Body
+
+	c.BodyParser(&body)
+
+	sendEmail(body.Email)
 
 	return c.Status(200).JSON(fiber.Map{
-		"status": true,
-		"email":  email,
-		"code":   code,
+		"status":  true,
+		"message": "Verification Email Sent",
 	})
 
 }
@@ -263,11 +297,10 @@ func logout(c *fiber.Ctx) error {
 	c.Request().Header.Set("Cookie", auth_header)
 
 	sess, _ := store.Get(c)
-	// sess.Delete("userId")
 	sess.Destroy()
-	
+
 	return c.Status(200).JSON(fiber.Map{
-		"status": true,
-		"message":  "Logged out",
+		"status":  true,
+		"message": "Logged out",
 	})
 }

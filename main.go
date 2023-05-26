@@ -22,11 +22,12 @@ func main() {
 	defer client.Disconnect(context.Background())
 	app := fiber.New()
 
-	app.Use(limiter.New(limiter.Config{
+	limiterMiddleware := limiter.New(limiter.Config{
 		Max:               20,
 		Expiration:        30 * time.Second,
 		LimiterMiddleware: limiter.SlidingWindow{},
-	}))
+	})
+
 
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: "*",
@@ -38,8 +39,14 @@ func main() {
 	})
 	api := app.Group("/api")
 
+	api.Use("/login", limiterMiddleware)
+	api.Use("/register", limiterMiddleware)
+
 	api.Post("/register", register)
 	api.Post("/login", login)
+	api.Post("/sendEmail", handleSendEmail)
+	api.Get("/logout", AuthMiddleWare, logout)
+
 
 	api.Get("/ping", func(c *fiber.Ctx) error {
 		return c.Status(200).JSON(fiber.Map{
