@@ -332,7 +332,7 @@ func handleSendEmail(c *fiber.Ctx) error {
 
 	return c.Status(200).JSON(fiber.Map{
 		"status":  true,
-		"message": "Verification Email Sent",
+		"message": "Verification Email Sent. Check your spam folder too.",
 	})
 
 }
