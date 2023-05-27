@@ -28,9 +28,13 @@ func main() {
 		LimiterMiddleware: limiter.SlidingWindow{},
 	})
 
+	emailVerificationLimiter := limiter.New(limiter.Config{
+		Max:        1,
+		Expiration: 60 * time.Second,
+	})
 
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "*",
+		AllowOrigins:  "*",
 		ExposeHeaders: "Authorization",
 	}))
 
@@ -41,12 +45,12 @@ func main() {
 
 	api.Use("/login", limiterMiddleware)
 	api.Use("/register", limiterMiddleware)
+	api.Use("/sendEmail", emailVerificationLimiter)
 
 	api.Post("/register", register)
 	api.Post("/login", login)
 	api.Post("/sendEmail", handleSendEmail)
 	api.Get("/logout", AuthMiddleWare, logout)
-
 
 	api.Get("/ping", func(c *fiber.Ctx) error {
 		return c.Status(200).JSON(fiber.Map{

@@ -3,13 +3,11 @@ package main
 import (
 	"fmt"
 	"log"
-	"math/rand"
 	"net/smtp"
 	"os"
 )
 
-func sendEmail(email string) {
-	code := fmt.Sprint(rand.Uint64())
+func sendEmail(email string, code string) {
 	text := `<!DOCTYPE html>
     <html lang='en'>
     <head>
@@ -41,7 +39,7 @@ func sendEmail(email string) {
         <div id='box'>
             <p>Hello, To complete your registration, you need to verify your Email</p>
             <a target='_blank' href='http://localhost:3000/api/verify?email=` + email + `&code=` + code + `'>Click here to Verify</a>
-            <p>You do not need to reply to this E-Mail</p>
+            <p>This verification link will expire in 15 minutes. You do not need to reply to this E-Mail</p>
         </div>
         <p>If you didn't intent to receive this email, just ignore it.</p>
     </body></html>
@@ -53,7 +51,7 @@ func sendEmail(email string) {
 	smtpHost := os.Getenv("SMTP_HOST")
 	smtpPort := "587"
 
-	msg := "Subject: Email Verification for EnNotes\r\nMIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n" + text
+	msg := "Subject: Email Verification for EncNotes\r\nMIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n" + text
 
 	messageByte := []byte(msg)
 

@@ -8,9 +8,10 @@ import (
 )
 
 type Note struct {
-	ID    string `json:"id"`
-	Title string `json:"title" validate:"required"`
-	Body  string `json:"body" validate:"required"`
+	ID           string `json:"id"`
+	Title        string `json:"title" validate:"required"`
+	Body         string `json:"body" validate:"required"`
+	LastModified int    `json:"lastModified" bson:"lastModified" validate:"required"`
 }
 
 type UserOnlyNote struct {
@@ -34,7 +35,7 @@ func addNote(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusNotAcceptable).JSON(fiber.Map{
 			"status":  false,
-			"message": "Make sure the request has a title and a body",
+			"message": "Make sure the request has a title, body and lastModified",
 		})
 	}
 
@@ -59,9 +60,10 @@ func addNote(c *fiber.Ctx) error {
 		"status":  true,
 		"message": "Note Added",
 		"note": fiber.Map{
-			"title": note.Title,
-			"body":  note.Body,
-			"id":    note.ID,
+			"title":        note.Title,
+			"body":         note.Body,
+			"id":           note.ID,
+			"lastModified": note.LastModified,
 		},
 	})
 }
@@ -154,7 +156,7 @@ func updateNote(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusNotAcceptable).JSON(fiber.Map{
 			"status":  false,
-			"message": "Make sure the request has a title and a body",
+			"message": "Make sure the request has a title, body and lastModified",
 		})
 	}
 
@@ -162,7 +164,7 @@ func updateNote(c *fiber.Ctx) error {
 		"userID": userID, "notes.id": note.ID,
 	}, fiber.Map{
 		"$set": fiber.Map{
-			"notes.$.title": note.Title, "notes.$.body": note.Body,
+			"notes.$.title": note.Title, "notes.$.body": note.Body, "notes.$.lastModified": note.LastModified,
 		},
 	})
 

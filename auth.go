@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"math/rand"
 	"time"
 
 	"github.com/go-playground/validator"
@@ -10,6 +12,12 @@ import (
 )
 
 type UserRegister struct {
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required,min=6,max=32"`
+	Captcha  string `json:"captcha" validate:"required"`
+}
+
+type UserLogin struct {
 	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password" validate:"required,min=6,max=32"`
 }
@@ -44,7 +52,16 @@ func register(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusNotAcceptable).JSON(fiber.Map{
 			"status":  "false",
-			"message": "Make sure password and email are following correct rules",
+			"message": "Make sure password and email are following correct rules and captcha is present.",
+		})
+	}
+
+	captchaCorrect := verifyCaptcha(user.Captcha)
+
+	if !captchaCorrect {
+		return c.Status(fiber.StatusNotAcceptable).JSON(fiber.Map{
+			"status":  "false",
+			"message": "Incorrect Captcha",
 		})
 	}
 
@@ -83,10 +100,21 @@ func register(c *fiber.Ctx) error {
 			"status":  "false",
 		})
 	}
+	var codeCollection = db.Collection("codes")
+
+	code := fmt.Sprint(rand.Uint64())
+
+	go codeCollection.InsertOne(context.Background(), fiber.Map{
+		"email":     user.Email,
+		"code":      code,
+		"createdAt": time.Now(),
+	})
+
+	go sendEmail(user.Email, code)
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"status":  "true",
-		"message": "Account Created. Verify your email to complete registration.",
+		"message": "Account Created. A verification link has been sent to your email.",
 	})
 
 }
@@ -174,7 +202,7 @@ func login(c *fiber.Ctx) error {
 		})
 	}
 
-	var user UserRegister
+	var user UserLogin
 
 	err := c.BodyParser(&user)
 
@@ -280,9 +308,27 @@ func handleSendEmail(c *fiber.Ctx) error {
 	}
 	var body Body
 
-	c.BodyParser(&body)
+	err := c.BodyParser(&body)
 
-	sendEmail(body.Email)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "something went wrong: " + err.Error(),
+			"status":  "false",
+		})
+	}
+
+	var db = client.Database("enotesdb")
+	var codeCollection = db.Collection("codes")
+
+	code := fmt.Sprint(rand.Uint64())
+
+	codeCollection.InsertOne(context.Background(), fiber.Map{
+		"email":     body.Email,
+		"code":      code,
+		"createdAt": time.Now(),
+	})
+
+	sendEmail(body.Email, code)
 
 	return c.Status(200).JSON(fiber.Map{
 		"status":  true,
