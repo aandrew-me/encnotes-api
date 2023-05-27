@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"crypto/rand"
+	"fmt"
 	"math/big"
 	"os"
 	"time"
@@ -17,6 +18,7 @@ import (
 var client *mongo.Client
 
 func main() {
+	go periodicPrint()
 	godotenv.Load()
 	connectDB()
 	defer client.Disconnect(context.Background())
@@ -95,4 +97,11 @@ func GenerateRandomString(n int) (string, error) {
 	}
 
 	return string(ret), nil
+}
+
+func periodicPrint(){
+	for {
+		fmt.Println("Alive")
+		time.Sleep(time.Minute * 5)
+	}
 }

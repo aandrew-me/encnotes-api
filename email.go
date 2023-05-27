@@ -8,6 +8,7 @@ import (
 )
 
 func sendEmail(email string, code string) {
+    url := "https://encnotes.andrewru.repl.co"
 	text := `<!DOCTYPE html>
     <html lang='en'>
     <head>
@@ -38,7 +39,7 @@ func sendEmail(email string, code string) {
     <body>
         <div id='box'>
             <p>Hello, To complete your registration, you need to verify your Email</p>
-            <a target='_blank' href='https://encnotes.andrewru.repl.co/api/verify?email=` + email + `&code=` + code + `'>Click here to Verify</a>
+            <a target='_blank' href='`+ url + `/api/verify?email=` + email + `&code=` + code + `'>Click here to Verify</a>
             <p>This verification link will expire in 15 minutes. You do not need to reply to this E-Mail</p>
         </div>
         <p>If you didn't intent to receive this email, just ignore it.</p>
