@@ -31,6 +31,12 @@ func main() {
 	emailVerificationLimiter := limiter.New(limiter.Config{
 		Max:        1,
 		Expiration: 60 * time.Second,
+		LimitReached: func(c *fiber.Ctx) error {
+			return c.Status(429).JSON(fiber.Map{
+				"message": "Try again after a minute",
+				"status":  "false",
+			})
+		},
 	})
 
 	app.Use(cors.New(cors.Config{
