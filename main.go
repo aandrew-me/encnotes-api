@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/joho/godotenv"
@@ -44,6 +45,10 @@ func main() {
 	app.Use(cors.New(cors.Config{
 		AllowOrigins:  "*",
 		ExposeHeaders: "Authorization",
+	}))
+
+	app.Use(compress.New(compress.Config{
+		Level: compress.LevelBestSpeed,
 	}))
 
 	app.Get("/", func(c *fiber.Ctx) error {
@@ -99,7 +104,7 @@ func GenerateRandomString(n int) (string, error) {
 	return string(ret), nil
 }
 
-func periodicPrint(){
+func periodicPrint() {
 	for {
 		fmt.Println("Alive")
 		time.Sleep(time.Minute * 5)
