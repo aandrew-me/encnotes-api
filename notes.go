@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -12,6 +11,14 @@ type Note struct {
 	Title        string `json:"title" validate:"required"`
 	Body         string `json:"body" validate:"required"`
 	LastModified int    `json:"lastModified" bson:"lastModified" validate:"required"`
+}
+type NoteForUpdate struct {
+	ID           string `json:"id"`
+	Title        string `json:"title"`
+	Body         string `json:"body"`
+	LastModified int    `json:"lastModified" bson:"lastModified" validate:"required"`
+	HasTitle     bool   `json:"hasTitle" validate:"required"`
+	HasBody      bool   `json:"hasBody" validate:"required"`
 }
 
 type UserOnlyNote struct {
@@ -150,23 +157,38 @@ func updateNote(c *fiber.Ctx) error {
 	var db = client.Database("enotesdb")
 	var userCollection = db.Collection("users")
 
-	var note Note
+	var note NoteForUpdate
 	err := c.BodyParser(&note)
 
 	if err != nil {
 		return c.Status(fiber.StatusNotAcceptable).JSON(fiber.Map{
 			"status":  false,
-			"message": "Make sure the request has a title, body and lastModified",
+			"message": "Make sure the request has a title or body, lastModified, hasTitle and hasBody",
 		})
 	}
 
-	_, err = userCollection.UpdateOne(context.Background(), fiber.Map{
-		"userID": userID, "notes.id": note.ID,
-	}, fiber.Map{
-		"$set": fiber.Map{
-			"notes.$.title": note.Title, "notes.$.body": note.Body, "notes.$.lastModified": note.LastModified,
-		},
-	})
+	if note.HasTitle == true && note.HasBody == false {
+		_, err = userCollection.UpdateOne(context.Background(), fiber.Map{
+			"userID": userID, "notes.id": note.ID,
+		}, fiber.Map{
+			"$set": fiber.Map{
+				"notes.$.title": note.Title, "notes.$.lastModified": note.LastModified,
+			},
+		})
+	} else if note.HasTitle == false && note.HasBody == true {
+		_, err = userCollection.UpdateOne(context.Background(), fiber.Map{
+			"userID": userID, "notes.id": note.ID,
+		}, fiber.Map{
+			"$set": fiber.Map{
+				"notes.$.body": note.Body, "notes.$.lastModified": note.LastModified,
+			},
+		})
+	} else {
+		return c.Status(fiber.StatusNotAcceptable).JSON(fiber.Map{
+			"status":  false,
+			"message": "Make sure the request has a title or body, lastModified, hasTitle and hasBody",
+		})
+	}
 
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
