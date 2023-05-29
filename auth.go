@@ -13,7 +13,7 @@ import (
 
 type UserRegister struct {
 	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required,min=6,max=32"`
+	Password string `json:"password" validate:"required,min=6,max=128"`
 	Captcha  string `json:"captcha" validate:"required"`
 }
 
@@ -28,7 +28,6 @@ type User struct {
 	UserID           string `json:"userID" validate:"required" bson:"userID"`
 	Notes            []Note `json:"notes"`
 	Verified         bool   `json:"verified"`
-	VerificationCode string `json:"verificationCode"`
 }
 
 // Register
@@ -42,7 +41,7 @@ func register(c *fiber.Ctx) error {
 
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "something went wrong: " + err.Error(),
+			"message": "Error parsing JSON. Make sure you are sending proper JSON.",
 			"status":  "false",
 		})
 	}
@@ -70,6 +69,7 @@ func register(c *fiber.Ctx) error {
 	result := userCollection.FindOne(c.Context(), fiber.Map{"email": user.Email})
 	var userResult UserRegister
 	result.Decode(&userResult)
+
 	if result.Err() == nil {
 		return c.Status(fiber.StatusNotAcceptable).JSON(fiber.Map{
 			"status":  "false",
