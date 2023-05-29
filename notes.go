@@ -11,6 +11,7 @@ type Note struct {
 	Title        string `json:"title" validate:"required"`
 	Body         string `json:"body" validate:"required"`
 	LastModified int    `json:"lastModified" bson:"lastModified" validate:"required"`
+	ItemKey      string `json:"itemKey" bson:"itemKey" validate:"required"`
 }
 type NoteForUpdate struct {
 	ID           string `json:"id"`
