@@ -298,7 +298,7 @@ func verifyEmail(c *fiber.Ctx) error {
 		},
 	})
 
-	return c.Status(200).SendString("Email Verified. You can login now.")
+	return c.Status(200).SendFile("./verified.html")
 
 }
 
