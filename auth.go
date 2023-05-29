@@ -19,12 +19,12 @@ type UserRegister struct {
 
 type UserLogin struct {
 	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required,min=6,max=32"`
+	Password string `json:"password" validate:"required,min=6,max=128"`
 }
 
 type User struct {
 	Email            string `json:"email" validate:"required,email"`
-	Password         string `json:"password" validate:"required,min=6,max=32"`
+	Password         string `json:"password" validate:"required,min=6,max=128"`
 	UserID           string `json:"userID" validate:"required" bson:"userID"`
 	Notes            []Note `json:"notes"`
 	Verified         bool   `json:"verified"`
