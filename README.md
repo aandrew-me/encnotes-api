@@ -1,19 +1,18 @@
-Notes api written in go.
+# Encnotes API
+Notes api written in Go for [Encnotes](https://github.com/aandrew-me/encnotes-client)
 
 [![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/5ZAVcm?referralCode=Z03iPU)
 
-API uses MongoDB to store user Data.
-
 # API Endpoints
 
-## GET
+### GET
 - /api/ping
 - /api/notes
 - /api/notes/[id]
 - /api/info
 - /api/verify
 
-## POST
+### POST
 - /api/register
 - /api/login
 - /api/logout
@@ -21,13 +20,13 @@ API uses MongoDB to store user Data.
 - /api/sendEmail
 
 
-## Delete
+### Delete
 - /api/notes
 
-## PUT
+### PUT
 - /api/notes
 
-# Environment Variables Required
+## Environment Variables Required
 
 `MONGO_URL`
 
@@ -40,3 +39,7 @@ API uses MongoDB to store user Data.
 `SMTP_HOST`
 
 `HCAPTCHA_SECRET`
+
+## Used Technologies
+- Gofiber for server
+- MongoDB for database
