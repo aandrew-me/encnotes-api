@@ -8,7 +8,7 @@ import (
 )
 
 func sendEmail(email string, code string) {
-    url := "https://encnotes.onrender.com"
+    url := "https://encnotes.andrewru.repl.co"
 	text := `<!DOCTYPE html>
     <html lang='en'>
     <head>
