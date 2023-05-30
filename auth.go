@@ -177,7 +177,7 @@ func info(c *fiber.Ctx) error {
 		})
 	}
 
-	var user UserRegister
+	var user User
 	result.Decode(&user)
 
 	return c.Status(200).JSON(user)

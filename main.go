@@ -79,7 +79,7 @@ func main() {
 
 	api.Get("/verify", verifyEmail)
 
-	api.Post("/info", AuthMiddleWare, info)
+	api.Get("/info", AuthMiddleWare, info)
 
 	PORT := ":8100"
 
