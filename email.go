@@ -28,7 +28,7 @@ func sendEmail(email string, code string) {
     <body>
         <div id='box'>
             <p>Hello, To complete your registration, you need to verify your Email</p>
-            <p>Your verification code is` + code + `</p>
+            <p>Your verification code is <b>` + code + `</b></p>
             <p>This verification code will expire in 15 minutes. You do not need to reply to this E-Mail</p>
         </div>
         <p>If you didn't intent to receive this email, just ignore it.</p>
