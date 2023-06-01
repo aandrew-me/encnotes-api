@@ -2,13 +2,11 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/smtp"
 	"os"
 )
 
 func sendEmail(email string, code string) {
-    url := "https://encnotes.andrewru.repl.co"
 	text := `<!DOCTYPE html>
     <html lang='en'>
     <head>
@@ -21,15 +19,6 @@ func sendEmail(email string, code string) {
                 text-align: center;
                 font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
             }
-            a {
-                background-color: rgb(77, 77, 238);
-                color: white;
-                padding: 15px;
-                text-decoration: none;
-                display: inline-block;
-                border-radius: 5px;
-                box-shadow: 1px 1px 5px gray;
-            }
             #box {
                 background-color: aliceblue;
                 padding: 35px;
@@ -39,8 +28,8 @@ func sendEmail(email string, code string) {
     <body>
         <div id='box'>
             <p>Hello, To complete your registration, you need to verify your Email</p>
-            <a target='_blank' href='`+ url + `/api/verify?email=` + email + `&code=` + code + `'>Click here to Verify</a>
-            <p>This verification link will expire in 15 minutes. You do not need to reply to this E-Mail</p>
+            <p>Your verification code is` + code + `</p>
+            <p>This verification code will expire in 15 minutes. You do not need to reply to this E-Mail</p>
         </div>
         <p>If you didn't intent to receive this email, just ignore it.</p>
     </body></html>
@@ -62,7 +51,8 @@ func sendEmail(email string, code string) {
 	// Send actual message
 	err := smtp.SendMail(smtpHost+":"+smtpPort, auth, from, to, messageByte)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
+	} else {
+		fmt.Println("Sent email")
 	}
-	fmt.Println("Sent email")
 }

@@ -275,7 +275,7 @@ func verifyEmail(c *fiber.Ctx) error {
 	code := c.Query("code")
 
 	if email == "" || code == "" {
-		return c.SendString("Request is Invalid")
+		return c.SendFile("./html/verified.html")
 	}
 	var db = client.Database("enotesdb")
 	var userCollection = db.Collection("users")
@@ -287,7 +287,7 @@ func verifyEmail(c *fiber.Ctx) error {
 	})
 
 	if result.Err() != nil {
-		return c.SendString("Request is Invalid")
+		return c.SendFile("./html/failed.html")
 	}
 
 	userCollection.UpdateOne(context.Background(), fiber.Map{
