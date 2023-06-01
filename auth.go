@@ -275,7 +275,10 @@ func verifyEmail(c *fiber.Ctx) error {
 	code := c.Query("code")
 
 	if email == "" || code == "" {
-		return c.SendFile("./html/failed.html")
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+			"status":  "false",
+			"message": "You need to provide email and code as queries.",
+		})
 	}
 	var db = client.Database("enotesdb")
 	var userCollection = db.Collection("users")
@@ -287,7 +290,10 @@ func verifyEmail(c *fiber.Ctx) error {
 	})
 
 	if result.Err() != nil {
-		return c.SendFile("./html/failed.html")
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+			"status":  "false",
+			"message": "Request is invalid.",
+		})
 	}
 
 	userCollection.UpdateOne(context.Background(), fiber.Map{
@@ -298,8 +304,10 @@ func verifyEmail(c *fiber.Ctx) error {
 		},
 	})
 
-	return c.Status(200).SendFile("./html/verified.html")
-
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "Email Verified. You can now login.",
+		"status":  "true",
+	})
 }
 
 func handleSendEmail(c *fiber.Ctx) error {
