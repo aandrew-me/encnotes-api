@@ -29,6 +29,17 @@ func main() {
 		LimiterMiddleware: limiter.SlidingWindow{},
 	})
 
+	codeCheckLimiter := limiter.New(limiter.Config{
+		Max:        10,
+		Expiration: 60 * time.Second,
+		LimitReached: func(c *fiber.Ctx) error {
+			return c.Status(429).JSON(fiber.Map{
+				"message": "Too many requests.",
+				"status":  "false",
+			})
+		},
+	})
+
 	emailVerificationLimiter := limiter.New(limiter.Config{
 		Max:        1,
 		Expiration: 60 * time.Second,
@@ -57,10 +68,12 @@ func main() {
 	api.Use("/login", limiterMiddleware)
 	api.Use("/register", limiterMiddleware)
 	api.Use("/sendEmail", emailVerificationLimiter)
+	api.Use("/verify", codeCheckLimiter)
 
 	api.Post("/register", register)
 	api.Post("/login", login)
 	api.Post("/sendEmail", handleSendEmail)
+	api.Get("/verify", verifyEmail)
 	api.Get("/logout", AuthMiddleWare, logout)
 
 	api.Get("/ping", func(c *fiber.Ctx) error {
@@ -75,7 +88,6 @@ func main() {
 	api.Delete("/notes", AuthMiddleWare, deleteNote)
 	api.Put("/notes", AuthMiddleWare, updateNote)
 
-	api.Get("/verify", verifyEmail)
 
 	api.Get("/info", AuthMiddleWare, info)
 
