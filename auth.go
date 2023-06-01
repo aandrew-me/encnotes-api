@@ -275,7 +275,7 @@ func verifyEmail(c *fiber.Ctx) error {
 	code := c.Query("code")
 
 	if email == "" || code == "" {
-		return c.SendFile("./html/verified.html")
+		return c.SendFile("./html/failed.html")
 	}
 	var db = client.Database("enotesdb")
 	var userCollection = db.Collection("users")
@@ -298,7 +298,7 @@ func verifyEmail(c *fiber.Ctx) error {
 		},
 	})
 
-	return c.Status(200).SendFile("./verified.html")
+	return c.Status(200).SendFile("./html/verified.html")
 
 }
 
