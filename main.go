@@ -33,17 +33,17 @@ func init() {
 	REDIS_USERNAME = os.Getenv("REDIS_USERNAME")
 	REDIS_PASSWORD = os.Getenv("REDIS_PASSWORD")
 
+	REDIS := redis.New(redis.Config{
+		Host:     REDIS_HOST,
+		Port:     REDIS_PORT,
+		Username: REDIS_USERNAME,
+		Password: REDIS_PASSWORD,
+	})
+
 	store = session.New(session.Config{
 		Expiration:   time.Hour * 24 * 7,
 		CookieSecure: true,
-		Storage: redis.New(redis.Config{
-			Host:     REDIS_HOST,
-			Port:     REDIS_PORT,
-			Username: REDIS_USERNAME,
-			Password: REDIS_PASSWORD,
-			Database: 0,
-			Reset:    false,
-		}),
+		Storage: REDIS,
 	})
 }
 

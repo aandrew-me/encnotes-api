@@ -1,0 +1,25 @@
+#Use an Ubuntu 18.04 base for our staging server
+FROM vm/ubuntu:18.04
+
+# To note: Layerfiles create entire VMs, *not* containers!
+RUN apt update && apt upgrade
+RUN wget https://go.dev/dl/go1.20.4.linux-amd64.tar.gz
+RUN tar -C /usr/local -xzf go1.20.4.linux-amd64.tar.gz
+RUN rm go1.20.4.linux-amd64.tar.gz
+COPY / /root
+ENV PATH=$PATH:/usr/local/go/bin
+RUN ls
+RUN go get
+SECRET ENV MONGO_URL
+SECRET ENV PORT
+SECRET ENV EMAIL_PASSWORD
+SECRET ENV EMAIL
+SECRET ENV SMTP_HOST
+SECRET ENV HCAPTCHA_SECRET
+SECRET ENV REDIS_HOST
+SECRET ENV REDIS_PORT
+SECRET ENV REDIS_USERNAME
+SECRET ENV REDIS_PASSWORD
+
+RUN BACKGROUND go run *.go
+EXPOSE WEBSITE http://localhost:80
