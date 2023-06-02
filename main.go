@@ -5,20 +5,49 @@ import (
 	"crypto/rand"
 	"math/big"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
+	"github.com/gofiber/fiber/v2/middleware/session"
+	"github.com/gofiber/storage/redis/v2"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 var client *mongo.Client
 
-func main() {
+var REDIS_PORT int
+var REDIS_HOST string
+var REDIS_USERNAME string
+var REDIS_PASSWORD string
+var store *session.Store
+
+func init() {
 	godotenv.Load()
+	REDIS_PORT, _ = strconv.Atoi(os.Getenv("REDIS_PORT"))
+	REDIS_HOST = os.Getenv("REDIS_HOST")
+	REDIS_USERNAME = os.Getenv("REDIS_USERNAME")
+	REDIS_PASSWORD = os.Getenv("REDIS_PASSWORD")
+
+	store = session.New(session.Config{
+		Expiration:   time.Hour * 24 * 7,
+		CookieSecure: true,
+		Storage: redis.New(redis.Config{
+			Host:     REDIS_HOST,
+			Port:     REDIS_PORT,
+			Username: REDIS_USERNAME,
+			Password: REDIS_PASSWORD,
+			Database: 0,
+			Reset:    false,
+		}),
+	})
+}
+
+func main() {
 	connectDB()
 	defer client.Disconnect(context.Background())
 	app := fiber.New()
@@ -88,7 +117,6 @@ func main() {
 	api.Delete("/notes", AuthMiddleWare, deleteNote)
 	api.Put("/notes", AuthMiddleWare, updateNote)
 
-
 	api.Get("/info", AuthMiddleWare, info)
 
 	PORT := ":8100"
@@ -96,7 +124,6 @@ func main() {
 	if os.Getenv("PORT") != "" {
 		PORT = ":" + os.Getenv("PORT")
 	}
-
 	app.Listen(PORT)
 }
 
@@ -113,4 +140,3 @@ func GenerateRandomString(n int) (string, error) {
 
 	return string(ret), nil
 }
-

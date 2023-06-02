@@ -40,6 +40,15 @@ Notes api written in Go for [Encnotes](https://github.com/aandrew-me/encnotes-cl
 
 `HCAPTCHA_SECRET`
 
+`REDIS_HOST`
+
+`REDIS_PORT`
+
+`REDIS_USERNAME`
+
+`REDIS_PASSWORD`
+
 ## Used Technologies
 - Gofiber for server
 - MongoDB for database
+- Redis for sessions

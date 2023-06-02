@@ -8,7 +8,6 @@ import (
 
 	"github.com/go-playground/validator"
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/session"
 )
 
 type UserRegister struct {
@@ -23,11 +22,11 @@ type UserLogin struct {
 }
 
 type User struct {
-	Email            string `json:"email" validate:"required,email"`
-	Password         string `json:"password" validate:"required,min=6,max=128"`
-	UserID           string `json:"userID" validate:"required" bson:"userID"`
-	Notes            []Note `json:"notes"`
-	Verified         bool   `json:"verified"`
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required,min=6,max=128"`
+	UserID   string `json:"userID" validate:"required" bson:"userID"`
+	Notes    []Note `json:"notes"`
+	Verified bool   `json:"verified"`
 }
 
 // Register
@@ -120,11 +119,8 @@ func register(c *fiber.Ctx) error {
 }
 
 // Auth
+
 var validate = validator.New()
-var store = session.New(session.Config{
-	Expiration:   time.Hour * 24 * 7,
-	CookieSecure: true,
-})
 
 func AuthMiddleWare(c *fiber.Ctx) error {
 	// Set cookie header from authorization header
