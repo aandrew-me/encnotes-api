@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
+	"strings"
 	"time"
 
 	"github.com/go-playground/validator"
@@ -84,7 +85,7 @@ func register(c *fiber.Ctx) error {
 		})
 	}
 	finalUser := User{
-		Email:    user.Email,
+		Email:    strings.ToLower(user.Email),
 		Password: user.Password,
 		Notes:    []Note{},
 		UserID:   randomString,
@@ -104,12 +105,12 @@ func register(c *fiber.Ctx) error {
 	code := fmt.Sprint(rand.Uint64())
 
 	go codeCollection.InsertOne(context.Background(), fiber.Map{
-		"email":     user.Email,
+		"email":     strings.ToLower(user.Email),
 		"code":      code,
 		"createdAt": time.Now(),
 	})
 
-	go sendEmail(user.Email, code)
+	go sendEmail(strings.ToLower(user.Email), code)
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"status":  "true",
@@ -267,7 +268,7 @@ func login(c *fiber.Ctx) error {
 }
 
 func verifyEmail(c *fiber.Ctx) error {
-	email := c.Query("email")
+	email := strings.ToLower(c.Query("email"))
 	code := c.Query("code")
 
 	if email == "" || code == "" {
@@ -327,12 +328,12 @@ func handleSendEmail(c *fiber.Ctx) error {
 	code := fmt.Sprint(rand.Uint64())
 
 	codeCollection.InsertOne(context.Background(), fiber.Map{
-		"email":     body.Email,
+		"email":     strings.ToLower(body.Email),
 		"code":      code,
 		"createdAt": time.Now(),
 	})
 
-	sendEmail(body.Email, code)
+	sendEmail(strings.ToLower(body.Email), code)
 
 	return c.Status(200).JSON(fiber.Map{
 		"status":  true,
