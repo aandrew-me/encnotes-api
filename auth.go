@@ -30,6 +30,11 @@ type User struct {
 	Verified bool   `json:"verified"`
 }
 
+type PasswordChange struct {
+	CurrentPassword string `json:"currentPassword"`
+	NewPassword     string `json:"newPassword"`
+}
+
 // Register
 func register(c *fiber.Ctx) error {
 	var db = client.Database("enotesdb")
@@ -40,7 +45,7 @@ func register(c *fiber.Ctx) error {
 	err := c.BodyParser(&user)
 
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Error parsing JSON. Make sure you are sending proper JSON.",
 			"status":  "false",
 		})
@@ -169,7 +174,7 @@ func info(c *fiber.Ctx) error {
 
 	if result.Err() != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "something went wrong: ",
+			"message": "Something went wrong",
 			"status":  "false",
 		})
 	}
@@ -204,7 +209,7 @@ func login(c *fiber.Ctx) error {
 	err := c.BodyParser(&user)
 
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "something went wrong: " + err.Error(),
 			"status":  "false",
 		})
@@ -267,6 +272,78 @@ func login(c *fiber.Ctx) error {
 
 }
 
+func changePassword(c *fiber.Ctx) error {
+	var info PasswordChange
+
+	err := c.BodyParser(&info)
+
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Error parsing JSON. Make sure you are sending proper JSON.",
+			"status":  "false",
+		})
+	}
+	if len(info.CurrentPassword) < 6 || len(info.NewPassword) < 6 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Provide currentPassword and newPassword in correct format",
+			"status":  "false",
+		})
+	}
+
+	if info.CurrentPassword == info.NewPassword {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Current Password and New Password cannot be same",
+			"status":  "false",
+		})
+	}
+
+	userID := c.Locals("userID")
+
+	if userID == nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": "You are not not authorized",
+			"status":  "false",
+		})
+	}
+
+	var db = client.Database("enotesdb")
+	var userCollection = db.Collection("users")
+
+	result := userCollection.FindOne(context.Background(), fiber.Map{
+		"userID": userID,
+	})
+
+	if result.Err() != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Something went wrong",
+			"status":  "false",
+		})
+	}
+
+	var user User
+	result.Decode(&user)
+
+	if user.Password != info.CurrentPassword {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": "Incorrect Password",
+			"status":  "false",
+		})
+	}
+
+	userCollection.UpdateOne(context.Background(), fiber.Map{
+		"userID": user.UserID}, fiber.Map{
+		"$set": fiber.Map{
+			"password": info.NewPassword,
+		},
+	},
+	)
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "Password changed",
+		"status":  "true",
+	})
+}
+
 func verifyEmail(c *fiber.Ctx) error {
 	email := strings.ToLower(c.Query("email"))
 	code := c.Query("code")
@@ -316,7 +393,7 @@ func handleSendEmail(c *fiber.Ctx) error {
 	err := c.BodyParser(&body)
 
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "something went wrong: " + err.Error(),
 			"status":  "false",
 		})

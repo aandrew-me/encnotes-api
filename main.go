@@ -80,6 +80,17 @@ func main() {
 		},
 	})
 
+	standardLimiter := limiter.New(limiter.Config{
+		Max:        200,
+		Expiration: 60 * time.Second,
+		LimitReached: func(c *fiber.Ctx) error {
+			return c.Status(429).JSON(fiber.Map{
+				"message": "Too many requests.",
+				"status":  "false",
+			})
+		},
+	})
+
 	app.Use(cors.New(cors.Config{
 		AllowOrigins:  "*",
 		ExposeHeaders: "Authorization",
@@ -98,12 +109,15 @@ func main() {
 	api.Use("/register", limiterMiddleware)
 	api.Use("/sendEmail", emailVerificationLimiter)
 	api.Use("/verify", codeCheckLimiter)
+	api.Use("/notes", standardLimiter)
+	api.Use("/changePassword", codeCheckLimiter)
 
 	api.Post("/register", register)
 	api.Post("/login", login)
 	api.Post("/sendEmail", handleSendEmail)
 	api.Get("/verify", verifyEmail)
 	api.Get("/logout", AuthMiddleWare, logout)
+	api.Post("/changePassword", AuthMiddleWare, changePassword)
 
 	api.Get("/ping", func(c *fiber.Ctx) error {
 		return c.Status(200).JSON(fiber.Map{

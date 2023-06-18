@@ -168,7 +168,7 @@ func updateNote(c *fiber.Ctx) error {
 		})
 	}
 
-	if note.HasTitle == true && note.HasBody == false {
+	if note.HasTitle && !note.HasBody {
 		_, err = userCollection.UpdateOne(context.Background(), fiber.Map{
 			"userID": userID, "notes.id": note.ID,
 		}, fiber.Map{
@@ -176,7 +176,7 @@ func updateNote(c *fiber.Ctx) error {
 				"notes.$.title": note.Title, "notes.$.lastModified": note.LastModified,
 			},
 		})
-	} else if note.HasTitle == false && note.HasBody == true {
+	} else if !note.HasTitle && note.HasBody{
 		_, err = userCollection.UpdateOne(context.Background(), fiber.Map{
 			"userID": userID, "notes.id": note.ID,
 		}, fiber.Map{
