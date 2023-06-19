@@ -43,7 +43,7 @@ func init() {
 	store = session.New(session.Config{
 		Expiration:   time.Hour * 24 * 7,
 		CookieSecure: true,
-		Storage: REDIS,
+		Storage:      REDIS,
 	})
 }
 

@@ -176,7 +176,7 @@ func updateNote(c *fiber.Ctx) error {
 				"notes.$.title": note.Title, "notes.$.lastModified": note.LastModified,
 			},
 		})
-	} else if !note.HasTitle && note.HasBody{
+	} else if !note.HasTitle && note.HasBody {
 		_, err = userCollection.UpdateOne(context.Background(), fiber.Map{
 			"userID": userID, "notes.id": note.ID,
 		}, fiber.Map{

@@ -10,7 +10,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-
 func connectDB() {
 	// MongoDB start
 	var MONGO_URL = "mongodb://localhost:27017"
