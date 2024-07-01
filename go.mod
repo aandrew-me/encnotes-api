@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/go-playground/validator v9.31.0+incompatible
-	github.com/gofiber/fiber/v2 v2.52.1
+	github.com/gofiber/fiber/v2 v2.52.5
 	github.com/gofiber/storage/redis/v2 v2.0.1
 	github.com/joho/godotenv v1.5.1
 	github.com/kataras/hcaptcha v0.0.2
